@@ -1,0 +1,7 @@
+{
+  "name": "MLM Action Partner",
+  "description": "Un asistente inteligente y minimalista para profesionales del Network Marketing. Enfocado en acción diaria: contactar, dar seguimiento, manejar objeciones y cumplir metas.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
