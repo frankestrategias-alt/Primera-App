@@ -1,4 +1,1300 @@
-import React, { useState, useEffect } from 'react';
+PK
+     O¥L\ŒIB%  %  
+   metadata.json{
+  "name": "Copy original of MLM Action Partner",
+  "description": "Un asistente inteligente y minimalista para profesionales del Network Marketing. Enfocado en acciÃ³n diaria: contactar, dar seguimiento, manejar objeciones y cumplir metas.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}PK
+     O¥L\            	   services/PK
+     O¥L\6äº»j%  j%     services/geminiService.tsimport { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+
+// Initialize the client. API_KEY is guaranteed to be in process.env.API_KEY
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+const SYSTEM_INSTRUCTION = `
+Eres un mentor experto en Network Marketing (Multinivel) de clase mundial.
+Tu estilo es: Claro, directo, motivador, prÃ¡ctico y humano.
+Odias la teorÃ­a innecesaria. Te enfocas en la acciÃ³n y los resultados.
+Tus respuestas deben ser siempre en EspaÃ±ol.
+
+Reglas para generar mensajes:
+1. Deben ser cortos y naturales.
+2. NUNCA parecer un robot o un vendedor agresivo.
+3. El objetivo inicial es CONVERSAR, no vender de inmediato.
+4. Usa psicologÃ­a persuasiva pero Ã©tica.
+5. FORMATO VISUAL OBLIGATORIO: Usa *negritas* (un solo asterisco al inicio y al final de la frase) para resaltar las palabras clave mÃ¡s importantes, preguntas de cierre o frases de empatÃ­a.
+`;
+
+const modelId = "gemini-3-flash-preview";
+
+export const generateContactScript = async (context: string, platform: string): Promise<string> => {
+  try {
+    const prompt = `
+    Genera 3 opciones de mensajes cortos para iniciar una conversaciÃ³n con un prospecto.
+    
+    Contexto del prospecto: ${context}
+    Plataforma: ${platform}
+    
+    Dame solo el texto de los mensajes, separados por "---".
+    Usa *asteriscos* para resaltar la intenciÃ³n del mensaje o palabras clave.
+    No incluyas introducciones ni explicaciones extra.
+    `;
+
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: modelId,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.7,
+      }
+    });
+
+    return response.text || "No se pudo generar el mensaje. Intenta de nuevo.";
+  } catch (error) {
+    console.error("Error generating contact script:", error);
+    return "Hubo un error al conectar con el asistente. Verifica tu conexiÃ³n.";
+  }
+};
+
+export const generateFollowUpScript = async (lastInteraction: string, daysAgo: string, interestLevel: string): Promise<string> => {
+  try {
+    const prompt = `
+    Genera 3 opciones de mensajes de seguimiento (follow-up).
+    
+    Lo que hablamos la Ãºltima vez: ${lastInteraction}
+    Tiempo transcurrido: ${daysAgo}
+    Nivel de interÃ©s previo: ${interestLevel}
+    
+    El tono debe ser profesional, sin presiÃ³n (postura), pero recordando el valor.
+    IMPORTANTE: Usa *asteriscos* para resaltar la frase gancho o la pregunta final.
+    Dame solo el texto de los mensajes, separados por "---".
+    `;
+
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: modelId,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.7,
+      }
+    });
+
+    return response.text || "No se pudo generar el mensaje.";
+  } catch (error) {
+    console.error("Error generating follow-up:", error);
+    return "Error al generar seguimiento.";
+  }
+};
+
+export const generateObjectionResponse = async (objection: string): Promise<string> => {
+  try {
+    const prompt = `
+    El prospecto me dio esta objeciÃ³n: "${objection}".
+    
+    Dame una respuesta segura, breve y clara para manejarla.
+    Usa la tÃ©cnica de: Sentir, SentÃ­, EncontrÃ© (Feel, Felt, Found) o una pregunta reflexiva.
+    No discutas. Clarifica.
+    
+    FORMATO VISUAL:
+    - Debes usar *asteriscos* para poner en negrita la frase de empatÃ­a o la pregunta clave.
+    - Ejemplo: "Entiendo perfectamente, *yo pensaba lo mismo al inicio*..."
+    `;
+
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: modelId,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.6, // Slightly lower for consistent, solid answers
+      }
+    });
+
+    return response.text || "No se pudo generar la respuesta.";
+  } catch (error) {
+    console.error("Error generating objection response:", error);
+    return "Error al generar respuesta.";
+  }
+};
+
+export const generateDailyMotivation = async (goals: any, progress: any): Promise<string> => {
+    try {
+      const prompt = `
+      Revisa mis metas: ${JSON.stringify(goals)}
+      Mi progreso de hoy: ${JSON.stringify(progress)}
+      
+      Dame un consejo de 1 frase MUY potente para que me levante y tome acciÃ³n AHORA MISMO.
+      Resalta la *acciÃ³n principal* en negritas (un solo asterisco).
+      Si voy bajo, empÃºjame. Si voy bien, felicÃ­tame rÃ¡pido y dime que siga.
+      `;
+  
+      const response: GenerateContentResponse = await ai.models.generateContent({
+        model: modelId,
+        contents: prompt,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          maxOutputTokens: 100,
+        }
+      });
+  
+      return response.text || "Â¡A trabajar!";
+    } catch (error) {
+      return "La disciplina es el puente entre metas y logros.";
+    }
+  };
+
+export const generateDailyPostIdea = async (): Promise<string> => {
+  try {
+    const prompt = `
+    ActÃºa como experto en Marketing de AtracciÃ³n.
+    Tu objetivo: Decirme exactamente quÃ© publicar HOY. Sin opciones infinitas.
+    
+    Dame SOLO esta estructura estricta (separada por "---"):
+    
+    1. GANCHO DEL DÃA: (Frase corta, directa y llamativa. Curiosidad sin vender compaÃ±Ã­a).
+    2. IDEA DE PUBLICACIÃ“N: (InstrucciÃ³n breve de quÃ© mostrar. Sin teorÃ­a).
+    3. FORMATO SUGERIDO: (Elige SOLO UNO: Historia, Post o Reel corto).
+    4. CTA SIMPLE: (Llamada a la acciÃ³n natural).
+    
+    No aÃ±adas introducciones ni conclusiones. Solo los 4 puntos separados por "---".
+    `;
+
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: modelId,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.8, // Slightly higher for creativity
+      }
+    });
+
+    return response.text || "Error generando idea.";
+  } catch (error) {
+    console.error("Error generating daily post:", error);
+    return "Error de conexiÃ³n.";
+  }
+};
+
+export const generateRescuePost = async (): Promise<{type: string, text: string, visual: string, objective: string}> => {
+    try {
+      const prompt = `
+      El usuario estÃ¡ en "Modo Salvavidas" (bajo de energÃ­a/tiempo).
+      Necesita un post de ALTO IMPACTO y PROFUNDIDAD, pero de ejecuciÃ³n instantÃ¡nea (Texto plano).
+      
+      Elige ALEATORIAMENTE uno de estos 3 Ã¡ngulos y genera el contenido:
+      1. VULNERABILIDAD: Admitir que el camino es duro pero vale la pena.
+      2. AUTORIDAD: Una verdad incÃ³moda sobre el Ã©xito o el dinero.
+      3. VISIÃ“N: Por quÃ© empezaste esto, recordÃ¡ndoselo a tu 'yo' del pasado.
+      
+      Dame la respuesta en este formato estricto separado por tuberÃ­as "|||":
+      TIPO DE POST (ej: Autoridad) ||| EL TEXTO DEL POST (Profundo, corto, con emojis, listo para copiar) ||| INSTRUCCIÃ“N VISUAL EXACTA (ej: Fondo negro, letra blanca, canciÃ³n de piano) ||| OBJETIVO PSICOLÃ“GICO (QuÃ© provoca en la mente del prospecto. Ej: Generar curiosidad, filtrar interesados)
+      
+      Sin introducciones.
+      `;
+  
+      const response: GenerateContentResponse = await ai.models.generateContent({
+        model: modelId,
+        contents: prompt,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          temperature: 0.9, // High creativity for impact
+        }
+      });
+      
+      const raw = response.text || "";
+      const parts = raw.split('|||');
+      
+      if (parts.length >= 4) {
+          return {
+              type: parts[0].trim(),
+              text: parts[1].trim(),
+              visual: parts[2].trim(),
+              objective: parts[3].trim()
+          };
+      }
+      
+      // Fallback
+      return {
+          type: "ReflexiÃ³n RÃ¡pida",
+          text: "Â¿Te has preguntado si estÃ¡s viviendo la vida que soÃ±aste o la que te tocÃ³? âœ¨",
+          visual: "Fondo de color sÃ³lido con letra grande.",
+          objective: "Romper el patrÃ³n y hacer reflexionar."
+      };
+
+    } catch (error) {
+      return {
+          type: "Emergencia",
+          text: "La disciplina es hacer lo que tienes que hacer, incluso cuando no quieres. Hoy cumplo. ðŸ’ª",
+          visual: "Fondo negro, sin mÃºsica.",
+          objective: "Demostrar constancia inquebrantable."
+      };
+    }
+  };
+
+export type HabitScenario = 'SUCCESS' | 'PUSH' | 'RESCUE_WIN';
+
+export const generateHabitMessage = async (scenario: HabitScenario): Promise<string> => {
+  const prompt = `
+    El usuario acaba de reportar sobre su hÃ¡bito de publicar hoy.
+    Escenario: ${scenario}
+    
+    Contexto:
+    - SUCCESS: Hizo el trabajo normal.
+    - PUSH: No lo hizo.
+    - RESCUE_WIN: Estaba cansado, casi renuncia, pero usÃ³ el "Modo Salvavidas" y cumpliÃ³.
+    
+    Genera UNA frase corta (mÃ¡ximo 12 palabras).
+    
+    Si es RESCUE_WIN: Â¡Celebra la RESILIENCIA! Dile que ganar en un dÃ­a malo vale doble.
+    Si es SUCCESS: Celebra su identidad de lÃ­der.
+    Si es PUSH: EmpatÃ­a estoica.
+    
+    Tono: Coach maduro.
+  `;
+
+  try {
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: modelId,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 1, 
+        maxOutputTokens: 50,
+      }
+    });
+
+    return response.text?.trim() || "La constancia construye tu futuro.";
+  } catch (error) {
+    if (scenario === 'RESCUE_WIN') return "Â¡Ganar en dÃ­as difÃ­ciles forja el carÃ¡cter!";
+    return scenario === 'SUCCESS' ? "Â¡Gran trabajo hoy!" : "MaÃ±ana serÃ¡ otro dÃ­a.";
+  }
+};PK
+     O¥L\ÓdQg  g     types.tsexport type ViewState = 'HOME' | 'CONTACT' | 'FOLLOWUP' | 'OBJECTIONS' | 'GOALS' | 'DAILY_POST';
+
+export interface UserGoals {
+  dailyContacts: number;
+  dailyFollowUps: number;
+  monthlyIncome: string;
+}
+
+export interface DailyProgress {
+  contactsMade: number;
+  followUpsMade: number;
+  lastUpdated: string; // ISO Date string to check for daily reset
+}
+
+export const DEFAULT_GOALS: UserGoals = {
+  dailyContacts: 5,
+  dailyFollowUps: 3,
+  monthlyIncome: "1000",
+};
+
+export const DEFAULT_PROGRESS: DailyProgress = {
+  contactsMade: 0,
+  followUpsMade: 0,
+  lastUpdated: new Date().toISOString().split('T')[0],
+};PK
+     O¥L\            
+   components/PK
+     O¥L\R »¶|  |     components/Layout.tsximport React from 'react';
+import { ArrowLeft } from 'lucide-react';
+
+interface LayoutProps {
+  children: React.ReactNode;
+  title?: string;
+  onBack?: () => void;
+  showBack?: boolean;
+}
+
+export const Layout: React.FC<LayoutProps> = ({ children, title, onBack, showBack = false }) => {
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col max-w-md mx-auto shadow-2xl relative overflow-hidden">
+        {/* Header */}
+        <header className="bg-white p-4 border-b border-slate-200 sticky top-0 z-10 flex items-center h-16">
+            {showBack && onBack && (
+                <button 
+                    onClick={onBack}
+                    className="mr-3 p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
+                >
+                    <ArrowLeft size={24} />
+                </button>
+            )}
+            <h1 className="text-xl font-bold text-slate-800 truncate flex-1">{title || 'MLM Action'}</h1>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto p-4 pb-20 scrollbar-hide">
+            {children}
+        </main>
+    </div>
+  );
+};PK
+     O¥L\<
+¤”¶  ¶     components/ActionCard.tsximport React, { useState, useEffect, useRef } from 'react';
+import { Copy, Check, Pencil, Save } from 'lucide-react';
+
+interface ActionCardProps {
+  text: string;
+  onCopy?: () => void;
+}
+
+export const ActionCard: React.FC<ActionCardProps> = ({ text, onCopy }) => {
+  const [currentText, setCurrentText] = useState(text);
+  const [isEditing, setIsEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Update local state if the prop changes (e.g. new generation)
+  useEffect(() => {
+    setCurrentText(text);
+    setIsEditing(false);
+  }, [text]);
+
+  // Auto-focus text area when editing starts
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+        textareaRef.current.focus();
+        // Adjust height automatically
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [isEditing]);
+
+  const handleCopy = () => {
+    if (onCopy) onCopy();
+    navigator.clipboard.writeText(currentText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const toggleEdit = () => {
+    setIsEditing(!isEditing);
+  };
+
+  // Function to render text with Bold support (*text*)
+  const renderFormattedText = (content: string) => {
+    const parts = content.split(/(\*.*?\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+        return <strong key={index} className="font-bold text-slate-900">{part.slice(1, -1)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  return (
+    <div className={`bg-white p-4 rounded-xl shadow-sm border mb-4 relative group transition-all ${isEditing ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-slate-200'}`}>
+      
+      {isEditing ? (
+        <textarea
+            ref={textareaRef}
+            value={currentText}
+            onChange={(e) => {
+                setCurrentText(e.target.value);
+                // Auto-grow height
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+            }}
+            className="w-full bg-transparent text-slate-800 text-base leading-relaxed resize-none focus:outline-none pr-8 font-sans"
+            rows={3}
+        />
+      ) : (
+        <div className="text-slate-700 whitespace-pre-wrap leading-relaxed pr-16 min-h-[3rem]">
+            {renderFormattedText(currentText.trim())}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/80 backdrop-blur-sm rounded-full pl-1">
+        
+        {isEditing ? (
+            <button 
+                onClick={toggleEdit}
+                className="p-2 rounded-full text-white bg-emerald-500 hover:bg-emerald-600 transition-all shadow-sm"
+                title="Guardar cambios"
+            >
+                <Save size={16} />
+            </button>
+        ) : (
+            <>
+                <button 
+                    onClick={toggleEdit}
+                    className="p-2 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                    title="Editar texto"
+                >
+                    <Pencil size={16} />
+                </button>
+                <button 
+                    onClick={handleCopy}
+                    className="p-2 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                    title="Copiar texto"
+                >
+                    {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                </button>
+            </>
+        )}
+      </div>
+    </div>
+  );
+};PK
+     O¥L\               views/PK
+     O¥L\÷Ž«‘C  ‘C     views/HomeView.tsximport React, { useEffect, useState } from 'react';
+import { MessageCircle, ShieldCheck, Target, Zap, UserPlus, Trophy, ChevronRight, Share2, X, Check, Copy, Megaphone } from 'lucide-react';
+import { ViewState, DailyProgress, UserGoals } from '../types';
+
+interface HomeViewProps {
+  setViewState: (view: ViewState) => void;
+  progress: DailyProgress;
+  goals: UserGoals;
+}
+
+// Helper component for Circular Progress
+const CircularProgress = ({ 
+  current, 
+  max, 
+  colorClass, 
+  icon: Icon 
+}: { 
+  current: number; 
+  max: number; 
+  colorClass: string; 
+  icon: React.ElementType 
+}) => {
+  const [offset, setOffset] = useState(0);
+  const radius = 30;
+  const circumference = 2 * Math.PI * radius;
+  const percentage = Math.min(100, Math.max(0, (current / max) * 100));
+
+  useEffect(() => {
+    const progressOffset = circumference - (percentage / 100) * circumference;
+    // Small delay to trigger animation
+    const timer = setTimeout(() => setOffset(progressOffset), 100);
+    return () => clearTimeout(timer);
+  }, [percentage, circumference]);
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative w-20 h-20">
+        {/* Background Circle */}
+        <svg className="w-full h-full transform -rotate-90">
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="6"
+            fill="transparent"
+            className="text-slate-700/50"
+          />
+          {/* Progress Circle */}
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="6"
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset} // Animated via state
+            strokeLinecap="round"
+            className={`${colorClass} transition-all duration-1000 ease-out`}
+            style={{ strokeDashoffset: offset }} // Inline style for ensuring update
+          />
+        </svg>
+        {/* Icon in Center */}
+        <div className={`absolute inset-0 flex items-center justify-center ${colorClass}`}>
+          <Icon size={24} />
+        </div>
+      </div>
+      <div className="mt-2 text-center">
+        <span className="text-2xl font-bold text-white">{current}</span>
+        <span className="text-xs text-slate-400">/{max}</span>
+      </div>
+    </div>
+  );
+};
+
+export const HomeView: React.FC<HomeViewProps> = ({ setViewState, progress, goals }) => {
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  
+  const totalActions = progress.contactsMade + progress.followUpsMade;
+  const totalGoals = goals.dailyContacts + goals.dailyFollowUps;
+  const overallPercentage = Math.min(100, Math.round((totalActions / totalGoals) * 100));
+
+  const shareText = `ðŸš€ *Mi Progreso de Hoy*\n\nâœ… Contactos: ${progress.contactsMade}/${goals.dailyContacts}\nðŸ”„ Seguimientos: ${progress.followUpsMade}/${goals.dailyFollowUps}\nðŸ”¥ EnergÃ­a: ${overallPercentage}%\n\nÂ¡La consistencia es clave! #NetworkMarketing #ActionPartner`;
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Mi Progreso Diario',
+          text: shareText,
+        });
+      } catch (err) {
+        console.log('Error sharing', err);
+      }
+    } else {
+      handleCopy();
+    }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in zoom-in duration-300 relative">
+      
+      {/* Hero / Stats Card */}
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-200 border border-slate-700 relative overflow-hidden">
+        
+        {/* Decorative background glow */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none"></div>
+
+        <div className="flex justify-between items-center mb-6 relative z-10">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Tu EnergÃ­a Diaria</h2>
+            <p className="text-slate-400 text-sm">{new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          </div>
+          <div className="flex gap-2">
+            <button 
+                onClick={() => setShowShareModal(true)}
+                className="p-2 rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors border border-white/10"
+                title="Compartir Progreso"
+            >
+                <Share2 size={24} />
+            </button>
+            <div className={`p-2 rounded-xl backdrop-blur-md border border-white/10 ${overallPercentage >= 100 ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-700/50 text-slate-300'}`}>
+                {overallPercentage >= 100 ? <Trophy size={24} className="animate-bounce" /> : <Zap size={24} />}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-around items-end relative z-10">
+            {/* Contacts Circle */}
+            <div className="flex flex-col items-center gap-1">
+                <CircularProgress 
+                    current={progress.contactsMade} 
+                    max={goals.dailyContacts} 
+                    colorClass="text-emerald-400"
+                    icon={UserPlus}
+                />
+                <span className="text-xs font-medium text-emerald-400/80 tracking-wide uppercase">Contactos</span>
+            </div>
+
+            {/* Divider */}
+            <div className="h-12 w-px bg-slate-700/50 mb-6"></div>
+
+            {/* FollowUps Circle */}
+            <div className="flex flex-col items-center gap-1">
+                <CircularProgress 
+                    current={progress.followUpsMade} 
+                    max={goals.dailyFollowUps} 
+                    colorClass="text-blue-400"
+                    icon={MessageCircle}
+                />
+                <span className="text-xs font-medium text-blue-400/80 tracking-wide uppercase">Seguimientos</span>
+            </div>
+        </div>
+        
+        {/* Footer Motivation */}
+        <div className="mt-6 pt-4 border-t border-slate-700/50 text-center relative z-10">
+             <p className="text-sm text-slate-300 font-light">
+                {overallPercentage >= 100 
+                    ? <span className="text-amber-400 font-bold">Â¡Objetivo Destruido! ðŸ”¥</span> 
+                    : overallPercentage >= 50 
+                        ? "Â¡Vas por buen camino, no pares!" 
+                        : "El dÃ­a es joven. Â¡Ataquemos!"}
+             </p>
+        </div>
+      </div>
+
+      {/* Main Action Grid */}
+      <div className="grid grid-cols-1 gap-4 pb-4">
+        
+        {/* CONTACTAR */}
+        <button 
+            onClick={() => setViewState('CONTACT')}
+            className="group relative overflow-hidden bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-emerald-100/50 transition-all duration-300 hover:-translate-y-1 active:scale-95 text-left flex items-center justify-between"
+        >
+            <div className="flex items-center gap-4">
+                <div className="bg-emerald-100 p-3.5 rounded-2xl text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
+                    <UserPlus size={26} strokeWidth={2.5} />
+                </div>
+                <div>
+                    <h3 className="font-bold text-slate-800 text-lg group-hover:text-emerald-900 transition-colors">Contactar</h3>
+                    <p className="text-sm text-slate-500 font-medium group-hover:text-emerald-700/70">Nuevos prospectos</p>
+                </div>
+            </div>
+            <div className="p-2 rounded-full group-hover:bg-emerald-100/50 transition-colors">
+                <ChevronRight className="text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+            </div>
+        </button>
+
+        {/* SEGUIMIENTO */}
+        <button 
+            onClick={() => setViewState('FOLLOWUP')}
+            className="group relative overflow-hidden bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 hover:-translate-y-1 active:scale-95 text-left flex items-center justify-between"
+        >
+            <div className="flex items-center gap-4">
+                <div className="bg-blue-100 p-3.5 rounded-2xl text-blue-600 group-hover:bg-blue-500 group-hover:text-white group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300 shadow-sm">
+                    <MessageCircle size={26} strokeWidth={2.5} />
+                </div>
+                <div>
+                    <h3 className="font-bold text-slate-800 text-lg group-hover:text-blue-900 transition-colors">Dar Seguimiento</h3>
+                    <p className="text-sm text-slate-500 font-medium group-hover:text-blue-700/70">Retoma conversaciones</p>
+                </div>
+            </div>
+             <div className="p-2 rounded-full group-hover:bg-blue-100/50 transition-colors">
+                <ChevronRight className="text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+            </div>
+        </button>
+
+        {/* OBJECIONES */}
+        <button 
+            onClick={() => setViewState('OBJECTIONS')}
+            className="group relative overflow-hidden bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-amber-100/50 transition-all duration-300 hover:-translate-y-1 active:scale-95 text-left flex items-center justify-between"
+        >
+            <div className="flex items-center gap-4">
+                <div className="bg-amber-100 p-3.5 rounded-2xl text-amber-600 group-hover:bg-amber-500 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
+                    <ShieldCheck size={26} strokeWidth={2.5} />
+                </div>
+                <div>
+                    <h3 className="font-bold text-slate-800 text-lg group-hover:text-amber-900 transition-colors">Responder Objeciones</h3>
+                    <p className="text-sm text-slate-500 font-medium group-hover:text-amber-700/70">Respuestas claras</p>
+                </div>
+            </div>
+             <div className="p-2 rounded-full group-hover:bg-amber-100/50 transition-colors">
+                <ChevronRight className="text-slate-300 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
+            </div>
+        </button>
+
+         {/* PUBLICA HOY */}
+         <button 
+            onClick={() => setViewState('DAILY_POST')}
+            className="group relative overflow-hidden bg-white hover:bg-pink-50 border border-slate-200 hover:border-pink-300 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-pink-100/50 transition-all duration-300 hover:-translate-y-1 active:scale-95 text-left flex items-center justify-between"
+        >
+            <div className="flex items-center gap-4">
+                <div className="bg-pink-100 p-3.5 rounded-2xl text-pink-600 group-hover:bg-pink-500 group-hover:text-white group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300 shadow-sm">
+                    <Megaphone size={26} strokeWidth={2.5} />
+                </div>
+                <div>
+                    <h3 className="font-bold text-slate-800 text-lg group-hover:text-pink-900 transition-colors">Publica Hoy</h3>
+                    <p className="text-sm text-slate-500 font-medium group-hover:text-pink-700/70">Marketing de AtracciÃ³n</p>
+                </div>
+            </div>
+             <div className="p-2 rounded-full group-hover:bg-pink-100/50 transition-colors">
+                <ChevronRight className="text-slate-300 group-hover:text-pink-600 group-hover:translate-x-1 transition-all" />
+            </div>
+        </button>
+
+        {/* METAS */}
+        <button 
+            onClick={() => setViewState('GOALS')}
+            className="group relative overflow-hidden bg-white hover:bg-purple-50 border border-slate-200 hover:border-purple-300 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 hover:-translate-y-1 active:scale-95 text-left flex items-center justify-between"
+        >
+            <div className="flex items-center gap-4">
+                <div className="bg-purple-100 p-3.5 rounded-2xl text-purple-600 group-hover:bg-purple-500 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
+                    <Target size={26} strokeWidth={2.5} />
+                </div>
+                <div>
+                    <h3 className="font-bold text-slate-800 text-lg group-hover:text-purple-900 transition-colors">Mis Metas</h3>
+                    <p className="text-sm text-slate-500 font-medium group-hover:text-purple-700/70">Enfoque y disciplina</p>
+                </div>
+            </div>
+             <div className="p-2 rounded-full group-hover:bg-purple-100/50 transition-colors">
+                <ChevronRight className="text-slate-300 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
+            </div>
+        </button>
+      </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 relative">
+                
+                {/* Close Button */}
+                <button 
+                    onClick={() => setShowShareModal(false)}
+                    className="absolute top-3 right-3 p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 transition-colors z-20"
+                >
+                    <X size={20} />
+                </button>
+
+                {/* Visual Card (Ready for Screenshot) */}
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 text-center text-white relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                    
+                    <h3 className="text-lg font-medium text-white/80 uppercase tracking-widest mb-4 relative z-10">Resumen Diario</h3>
+                    
+                    <div className="inline-flex items-center justify-center w-28 h-28 rounded-full border-4 border-white/20 bg-white/10 mb-6 relative z-10">
+                        <span className="text-4xl font-bold">{overallPercentage}%</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 relative z-10">
+                        <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+                            <p className="text-2xl font-bold">{progress.contactsMade}</p>
+                            <p className="text-xs text-indigo-200 uppercase">Contactos</p>
+                        </div>
+                        <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+                            <p className="text-2xl font-bold">{progress.followUpsMade}</p>
+                            <p className="text-xs text-indigo-200 uppercase">Seguimientos</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="p-5 bg-slate-50">
+                    <p className="text-center text-slate-500 text-sm mb-4">
+                        Â¡Comparte tus resultados y motiva a tu equipo!
+                    </p>
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={handleNativeShare}
+                            className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                        >
+                            <Share2 size={18} />
+                            Compartir
+                        </button>
+                        <button 
+                            onClick={handleCopy}
+                            className="flex-none bg-white border border-slate-200 text-slate-600 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                        >
+                            {copied ? <Check size={20} className="text-green-500" /> : <Copy size={20} />}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
+    </div>
+  );
+};PK
+     O¥L\ûyæ       views/ContactView.tsximport React, { useState, useRef } from 'react';
+import { Send, Sparkles, Loader2, UserPlus, Camera, X } from 'lucide-react';
+import { generateContactScript } from '../services/geminiService';
+import { ActionCard } from '../components/ActionCard';
+
+interface ContactViewProps {
+  onRecordAction: () => void;
+}
+
+export const ContactView: React.FC<ContactViewProps> = ({ onRecordAction }) => {
+  const [context, setContext] = useState('');
+  const [platform, setPlatform] = useState('WhatsApp');
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<string[]>([]);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleGenerate = async () => {
+    if (!context.trim()) return;
+    setLoading(true);
+    setResults([]);
+    
+    // In a real app, we might analyze the image here using AI vision capabilities
+    // For now, we generate the script based on text context
+    const response = await generateContactScript(context, platform);
+    const scripts = response.split('---').map(s => s.trim()).filter(s => s.length > 0);
+    
+    setResults(scripts);
+    setLoading(false);
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-in slide-in-from-right duration-300">
+      
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        
+        {/* Photo Section */}
+        <div className="flex flex-col items-center mb-6">
+            <input 
+                type="file" 
+                ref={fileInputRef}
+                onChange={handlePhotoSelect}
+                accept="image/*"
+                capture="user"
+                className="hidden"
+            />
+            
+            <div className="relative">
+                {photo ? (
+                    <div className="relative group">
+                        <img 
+                            src={photo} 
+                            alt="Prospecto" 
+                            className="w-24 h-24 rounded-full object-cover border-4 border-emerald-100 shadow-sm"
+                        />
+                        <button 
+                            onClick={() => setPhoto(null)}
+                            className="absolute -top-1 -right-1 bg-slate-500 text-white p-1 rounded-full hover:bg-red-500 shadow-sm transition-colors"
+                        >
+                            <X size={14} />
+                        </button>
+                        <button 
+                             onClick={() => fileInputRef.current?.click()}
+                             className="absolute bottom-0 right-0 bg-emerald-500 text-white p-1.5 rounded-full hover:bg-emerald-600 shadow-sm transition-colors"
+                        >
+                            <Camera size={14} />
+                        </button>
+                    </div>
+                ) : (
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-24 h-24 bg-slate-50 rounded-full flex flex-col items-center justify-center border-2 border-dashed border-slate-300 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+                    >
+                        <UserPlus size={28} className="text-slate-400 group-hover:text-emerald-500 transition-colors mb-1" />
+                        <span className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-600">FOTO</span>
+                    </button>
+                )}
+            </div>
+            {photo && <p className="text-xs text-slate-400 mt-2 font-medium">Prospecto Identificado</p>}
+        </div>
+
+        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <Sparkles className="text-emerald-500" size={20} />
+          Â¿A quiÃ©n vas a contactar?
+        </h2>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1">Contexto breve</label>
+            <input 
+              type="text" 
+              value={context}
+              onChange={(e) => setContext(e.target.value)}
+              placeholder="Ej: Amigo de la secundaria, Conocido del gimnasio..."
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1">Plataforma</label>
+            <div className="flex gap-2 flex-wrap">
+              {['WhatsApp', 'Instagram', 'Facebook', 'En persona'].map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPlatform(p)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    platform === p 
+                    ? 'bg-emerald-500 text-white shadow-md' 
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleGenerate}
+            disabled={!context || loading}
+            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md transition-all ${
+              !context || loading
+              ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+              : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95'
+            }`}
+          >
+            {loading ? <Loader2 className="animate-spin" /> : <Sparkles size={20} />}
+            {loading ? 'Pensando...' : 'Generar Ideas'}
+          </button>
+        </div>
+      </div>
+
+      {results.length > 0 && (
+        <div>
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1">Opciones Sugeridas</h3>
+          {results.map((script, idx) => (
+            <ActionCard 
+                key={idx} 
+                text={script} 
+                onCopy={onRecordAction} // Increment counter on copy
+            />
+          ))}
+          <p className="text-xs text-center text-slate-400 mt-4">
+            Recuerda: El objetivo es abrir la puerta, no tirar la pared. Personaliza el mensaje.
+          </p>
+        </div>
+      )}
+
+    </div>
+  );
+};PK
+     O¥L\xòžS  S     views/FollowUpView.tsximport React, { useState } from 'react';
+import { Send, Clock, Loader2, ThumbsUp } from 'lucide-react';
+import { generateFollowUpScript } from '../services/geminiService';
+import { ActionCard } from '../components/ActionCard';
+
+interface FollowUpViewProps {
+  onRecordAction: () => void;
+}
+
+export const FollowUpView: React.FC<FollowUpViewProps> = ({ onRecordAction }) => {
+  const [lastInteraction, setLastInteraction] = useState('');
+  const [timeAgo, setTimeAgo] = useState('3 dÃ­as');
+  const [interest, setInterest] = useState('Medio');
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<string[]>([]);
+
+  const handleGenerate = async () => {
+    if (!lastInteraction.trim()) return;
+    setLoading(true);
+    setResults([]);
+    
+    const response = await generateFollowUpScript(lastInteraction, timeAgo, interest);
+    const scripts = response.split('---').map(s => s.trim()).filter(s => s.length > 0);
+    
+    setResults(scripts);
+    setLoading(false);
+  };
+
+  return (
+    <div className="space-y-6 animate-in slide-in-from-right duration-300">
+      
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <Clock className="text-blue-500" size={20} />
+          Datos del Seguimiento
+        </h2>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1">Â¿QuÃ© hablaron la Ãºltima vez?</label>
+            <input 
+              type="text" 
+              value={lastInteraction}
+              onChange={(e) => setLastInteraction(e.target.value)}
+              placeholder="Ej: Vio el video de presentaciÃ³n, probÃ³ el producto..."
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">Tiempo pasado</label>
+                <select 
+                    value={timeAgo}
+                    onChange={(e) => setTimeAgo(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                >
+                    <option>1 dÃ­a</option>
+                    <option>3 dÃ­as</option>
+                    <option>1 semana</option>
+                    <option>+2 semanas</option>
+                </select>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">InterÃ©s previo</label>
+                <select 
+                    value={interest}
+                    onChange={(e) => setInterest(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                >
+                    <option>Alto</option>
+                    <option>Medio</option>
+                    <option>Bajo</option>
+                    <option>Indeciso</option>
+                </select>
+            </div>
+          </div>
+
+          <button
+            onClick={handleGenerate}
+            disabled={!lastInteraction || loading}
+            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md transition-all ${
+              !lastInteraction || loading
+              ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
+            }`}
+          >
+            {loading ? <Loader2 className="animate-spin" /> : <Send size={20} />}
+            {loading ? 'Generando...' : 'Crear Seguimiento'}
+          </button>
+        </div>
+      </div>
+
+      {results.length > 0 && (
+        <div>
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1">Mensajes Sugeridos</h3>
+          {results.map((script, idx) => (
+            <ActionCard 
+                key={idx} 
+                text={script} 
+                onCopy={onRecordAction}
+            />
+          ))}
+           <p className="text-xs text-center text-slate-400 mt-4">
+            La fortuna estÃ¡ en el seguimiento. MantÃ©n la postura profesional.
+          </p>
+        </div>
+      )}
+
+    </div>
+  );
+};PK
+     O¥L\ FÙ       views/ObjectionView.tsximport React, { useState } from 'react';
+import { ShieldCheck, MessageSquareWarning, Loader2, ChevronRight, User } from 'lucide-react';
+import { generateObjectionResponse } from '../services/geminiService';
+import { ActionCard } from '../components/ActionCard';
+
+export const ObjectionView: React.FC = () => {
+  const [selectedObjection, setSelectedObjection] = useState<string | null>(null);
+  const [customObjection, setCustomObjection] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState<string | null>(null);
+
+  const commonObjections = [
+    "No tengo dinero",
+    "No tengo tiempo",
+    "Es una pirÃ¡mide",
+    "Tengo que consultarlo con mi pareja",
+    "No soy bueno vendiendo",
+    "DÃ©jame pensarlo"
+  ];
+
+  const handleObjectionSubmit = async (obj: string) => {
+    setSelectedObjection(obj);
+    setLoading(true);
+    setResponse(null);
+    
+    const result = await generateObjectionResponse(obj);
+    setResponse(result);
+    setLoading(false);
+  };
+
+  return (
+    <div className="space-y-6 animate-in slide-in-from-right duration-300">
+      
+      {!response && !loading && (
+        <div className="space-y-4">
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 mb-4">
+                <h2 className="text-amber-800 font-bold text-lg mb-1 flex items-center gap-2">
+                    <ShieldCheck size={20}/>
+                    Escudo Anti-Excusas
+                </h2>
+                <p className="text-amber-700/80 text-sm">
+                    Selecciona quÃ© te dijeron. La IA te darÃ¡ una respuesta profesional y empÃ¡tica.
+                </p>
+            </div>
+
+            <p className="text-slate-600 font-medium ml-1">Objeciones Comunes:</p>
+            <div className="grid grid-cols-1 gap-3">
+                {commonObjections.map((obj) => (
+                    <button
+                        key={obj}
+                        onClick={() => handleObjectionSubmit(obj)}
+                        className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between hover:bg-amber-50 hover:border-amber-300 transition-all text-left group"
+                    >
+                        <span className="font-medium text-slate-700 group-hover:text-amber-900 transition-colors">{obj}</span>
+                        <ChevronRight size={20} className="text-slate-300 group-hover:text-amber-400 transition-colors" />
+                    </button>
+                ))}
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-slate-200">
+                <label className="block text-sm font-medium text-slate-600 mb-2">Â¿Fue algo diferente?</label>
+                <div className="flex gap-2">
+                    <input 
+                        type="text" 
+                        value={customObjection}
+                        onChange={(e) => setCustomObjection(e.target.value)}
+                        placeholder="Escribe exactamente quÃ© te dijeron..."
+                        className="flex-1 p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all"
+                    />
+                    <button 
+                        onClick={() => handleObjectionSubmit(customObjection)}
+                        disabled={!customObjection}
+                        className="bg-slate-800 text-white p-3 rounded-xl disabled:opacity-50 hover:bg-slate-900 transition-colors shadow-md"
+                    >
+                        <ShieldCheck size={24} />
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="bg-amber-100 p-4 rounded-full mb-4 animate-pulse">
+                <ShieldCheck className="text-amber-600" size={32} />
+            </div>
+            <Loader2 className="animate-spin text-slate-400 mb-2" size={24} />
+            <p className="text-slate-500 font-medium">Analizando la objeciÃ³n...</p>
+            <p className="text-slate-400 text-xs mt-1">Buscando el mejor Ã¡ngulo psicolÃ³gico.</p>
+        </div>
+      )}
+
+      {response && (
+        <div className="animate-in fade-in zoom-in duration-300">
+             {/* Context Box */}
+             <div className="bg-slate-100 border border-slate-200 p-4 rounded-xl mb-6 relative">
+                <div className="absolute -top-3 left-4 bg-white px-2 py-0.5 rounded-md border border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <User size={12} /> Prospecto dijo:
+                </div>
+                <p className="text-slate-700 italic font-medium">
+                    "{selectedObjection || customObjection}"
+                </p>
+             </div>
+             
+             <h3 className="text-sm font-bold text-amber-600 uppercase tracking-wider mb-3 ml-1 flex items-center gap-2">
+                <ShieldCheck size={16} />
+                Respuesta Sugerida
+             </h3>
+             
+             <ActionCard text={response} />
+
+             <div className="mt-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <p className="text-xs text-blue-700 text-center">
+                    ðŸ’¡ <strong>Tip Pro:</strong> Usa el botÃ³n de editar (lÃ¡piz) para adaptar la respuesta a tu propio vocabulario antes de enviar.
+                </p>
+             </div>
+
+             <button 
+                onClick={() => {
+                    setResponse(null);
+                    setSelectedObjection(null);
+                    setCustomObjection('');
+                }}
+                className="w-full py-4 mt-6 text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-xl font-bold transition-all shadow-sm"
+             >
+                Responder otra objeciÃ³n
+             </button>
+        </div>
+      )}
+
+    </div>
+  );
+};PK
+     O¥L\0P¾œ¿  ¿     views/GoalsView.tsximport React, { useEffect, useState } from 'react';
+import { Target, Save, Trophy, Activity } from 'lucide-react';
+import { UserGoals, DailyProgress } from '../types';
+import { generateDailyMotivation } from '../services/geminiService';
+
+interface GoalsViewProps {
+  goals: UserGoals;
+  progress: DailyProgress;
+  onUpdateGoals: (newGoals: UserGoals) => void;
+}
+
+export const GoalsView: React.FC<GoalsViewProps> = ({ goals, progress, onUpdateGoals }) => {
+  const [localGoals, setLocalGoals] = useState<UserGoals>(goals);
+  const [motivation, setMotivation] = useState<string>('');
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    generateDailyMotivation(goals, progress).then(setMotivation);
+  }, [goals, progress]);
+
+  const handleSave = () => {
+    onUpdateGoals(localGoals);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="space-y-6 animate-in slide-in-from-right duration-300">
+      
+      {/* Motivation Card */}
+      <div className="bg-gradient-to-br from-purple-600 to-indigo-800 p-6 rounded-2xl text-white shadow-lg relative overflow-hidden">
+        <Trophy className="absolute top-4 right-4 text-white/20 -rotate-12" size={60} />
+        <h2 className="font-bold text-lg mb-2 z-10 relative">Coach IA dice:</h2>
+        <p className="text-lg italic font-light z-10 relative">"{motivation || 'Cargando motivaciÃ³n...'}"</p>
+      </div>
+
+      {/* Stats Display */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+            <p className="text-slate-500 text-xs uppercase font-bold tracking-wider mb-1">Contactos Hoy</p>
+            <p className="text-3xl font-bold text-slate-800">{progress.contactsMade}</p>
+            <p className="text-xs text-slate-400">Meta: {goals.dailyContacts}</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+            <p className="text-slate-500 text-xs uppercase font-bold tracking-wider mb-1">Seguimientos</p>
+            <p className="text-3xl font-bold text-slate-800">{progress.followUpsMade}</p>
+            <p className="text-xs text-slate-400">Meta: {goals.dailyFollowUps}</p>
+        </div>
+      </div>
+
+      {/* Goal Settings Form */}
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <Target size={20} className="text-purple-500"/>
+                Configurar Metas
+            </h3>
+            <button 
+                onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+                className="text-sm font-medium text-purple-600 hover:bg-purple-50 px-3 py-1 rounded-lg transition-colors"
+            >
+                {isEditing ? 'Guardar' : 'Editar'}
+            </button>
+        </div>
+
+        <div className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">Meta diaria de Contactos</label>
+                <input 
+                    type="number" 
+                    value={localGoals.dailyContacts}
+                    disabled={!isEditing}
+                    onChange={(e) => setLocalGoals({...localGoals, dailyContacts: parseInt(e.target.value) || 0})}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl disabled:opacity-60"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">Meta diaria de Seguimientos</label>
+                <input 
+                    type="number" 
+                    value={localGoals.dailyFollowUps}
+                    disabled={!isEditing}
+                    onChange={(e) => setLocalGoals({...localGoals, dailyFollowUps: parseInt(e.target.value) || 0})}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl disabled:opacity-60"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">Meta de Ingreso Mensual ($)</label>
+                <input 
+                    type="text" 
+                    value={localGoals.monthlyIncome}
+                    disabled={!isEditing}
+                    onChange={(e) => setLocalGoals({...localGoals, monthlyIncome: e.target.value})}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl disabled:opacity-60"
+                />
+            </div>
+            
+            {isEditing && (
+                <button 
+                    onClick={handleSave}
+                    className="w-full bg-purple-600 text-white font-bold py-3 rounded-xl mt-2 flex items-center justify-center gap-2"
+                >
+                    <Save size={18} />
+                    Guardar Cambios
+                </button>
+            )}
+        </div>
+      </div>
+    </div>
+  );
+};PK
+     O¥L\¯HGóD
+  D
+      App.tsximport React, { useState, useEffect } from 'react';
 import { HomeView } from './views/HomeView';
 import { ContactView } from './views/ContactView';
 import { FollowUpView } from './views/FollowUpView';
@@ -88,4 +1384,580 @@ function App() {
   );
 }
 
-export default App;
+export default App;PK
+     O¥L\'§w”E  ”E     views/DailyPostView.tsximport React, { useEffect, useState } from 'react';
+import { 
+  Camera, Instagram, Megaphone, CheckCircle2, Zap, Loader2, Sparkles, 
+  LifeBuoy, Copy, Check, RefreshCw, Palette, Target, Shield, Trophy, 
+  Magnet, Lightbulb, MousePointerClick, ArrowRight 
+} from 'lucide-react';
+import { generateDailyPostIdea, generateHabitMessage, generateRescuePost } from '../services/geminiService';
+
+export const DailyPostView: React.FC = () => {
+  const [loading, setLoading] = useState(true);
+  const [plan, setPlan] = useState<{hook: string, idea: string, format: string, cta: string} | null>(null);
+  const [publishedStatus, setPublishedStatus] = useState<'IDLE' | 'YES' | 'RESCUE'>('IDLE');
+  const [wasRescue, setWasRescue] = useState(false);
+  const [habitMessage, setHabitMessage] = useState<string>('');
+  
+  // Rescue State
+  const [rescueData, setRescueData] = useState<{type: string, text: string, visual: string, objective: string} | null>(null);
+  const [loadingAction, setLoadingAction] = useState(false);
+  const [copiedRescue, setCopiedRescue] = useState(false);
+
+  useEffect(() => {
+    loadPlan();
+  }, []);
+
+  const loadPlan = async () => {
+    setLoading(true);
+    const text = await generateDailyPostIdea();
+    if (text && text.includes('---')) {
+      const parts = text.split('---').map(p => p.trim());
+      const clean = (s: string) => s.replace(/^(1\.|2\.|3\.|4\.)\s*.*?:/i, '').trim();
+      
+      setPlan({
+        hook: clean(parts[0] || "Algo interesante..."),
+        idea: clean(parts[1] || "Muestra tu estilo de vida."),
+        format: clean(parts[2] || "Historia"),
+        cta: clean(parts[3] || "EscrÃ­beme.")
+      });
+    } else {
+        setPlan({
+            hook: "Error de formato",
+            idea: text,
+            format: "Historia",
+            cta: "Reintenta"
+        });
+    }
+    setLoading(false);
+  };
+
+  const handleSuccess = async (fromRescue = false) => {
+    setLoadingAction(true);
+    setWasRescue(fromRescue);
+    
+    // Scenario changes if it was a Rescue mission
+    const scenario = fromRescue ? 'RESCUE_WIN' : 'SUCCESS';
+    const message = await generateHabitMessage(scenario);
+    
+    setHabitMessage(message);
+    setPublishedStatus('YES');
+    setLoadingAction(false);
+  };
+
+  const handleRescueMode = async () => {
+    setLoadingAction(true);
+    const data = await generateRescuePost();
+    setRescueData(data);
+    setPublishedStatus('RESCUE');
+    setLoadingAction(false);
+  };
+
+  const handleCopyRescue = () => {
+    if(rescueData) {
+        navigator.clipboard.writeText(rescueData.text);
+        setCopiedRescue(true);
+        setTimeout(() => setCopiedRescue(false), 2000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-6">
+        <div className="relative">
+            <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 rounded-full animate-pulse"></div>
+            <div className="bg-white p-5 rounded-3xl shadow-lg relative z-10 border border-indigo-50">
+                <Sparkles className="text-indigo-600 animate-spin-slow" size={40} />
+            </div>
+        </div>
+        <div className="text-center space-y-2">
+            <h3 className="text-lg font-bold text-slate-700">DiseÃ±ando Estrategia...</h3>
+            <p className="text-slate-400 text-sm">Analizando tendencias de atracciÃ³n</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- SUCCESS STATE ---
+  if (publishedStatus === 'YES') {
+    return (
+        <div className="flex flex-col items-center justify-center h-full animate-in zoom-in duration-500 text-center p-6 bg-white rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden">
+            
+            {/* Background Confetti/Glow */}
+            <div className={`absolute top-0 left-0 w-full h-2 bg-gradient-to-r ${wasRescue ? 'from-blue-400 to-indigo-600' : 'from-emerald-400 to-green-600'}`}></div>
+            
+            <div className="mb-8 relative">
+                {wasRescue ? (
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-blue-500 blur-2xl opacity-30 rounded-full animate-pulse"></div>
+                        <Shield className="text-blue-600 w-24 h-24 relative z-10 drop-shadow-lg" strokeWidth={1.5} />
+                        <div className="absolute -bottom-3 -right-3 bg-gradient-to-r from-amber-300 to-yellow-500 text-yellow-900 text-xs font-black px-3 py-1 rounded-full border-2 border-white shadow-lg rotate-6">
+                            SAVED!
+                        </div>
+                    </div>
+                ) : (
+                    <div className="relative">
+                         <div className="absolute inset-0 bg-green-500 blur-2xl opacity-20 rounded-full"></div>
+                        <Trophy className="text-emerald-500 w-24 h-24 relative z-10 drop-shadow-lg" strokeWidth={1.5} />
+                    </div>
+                )}
+            </div>
+
+            <h2 className="text-3xl font-black mb-2 tracking-tight text-slate-800">
+                {wasRescue ? "Â¡RESILIENCIA!" : "Â¡MISIÃ“N CUMPLIDA!"}
+            </h2>
+            
+            <div className="mt-4 mb-8 max-w-xs mx-auto">
+                <p className="text-slate-600 font-serif italic text-lg leading-relaxed">
+                    "{habitMessage}"
+                </p>
+            </div>
+
+            {wasRescue && (
+                 <div className="bg-blue-50 border border-blue-100 text-blue-800 px-5 py-4 rounded-2xl text-sm font-medium mb-8 flex items-center gap-3 text-left">
+                    <Zap size={20} className="text-blue-500 shrink-0" />
+                    <div>
+                        <span className="font-bold block text-blue-900">Racha Salvada</span>
+                        <span className="text-xs opacity-80">Ganar en un dÃ­a malo vale doble.</span>
+                    </div>
+                 </div>
+            )}
+
+            <button 
+                onClick={() => setPublishedStatus('IDLE')} 
+                className="text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors flex items-center gap-2 group"
+            >
+                Ver estrategia de nuevo
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform"/>
+            </button>
+        </div>
+    );
+  }
+
+  // --- RESCUE (VIP MODE) STATE ---
+  if (publishedStatus === 'RESCUE' && rescueData) {
+    return (
+        <div className="flex flex-col h-full animate-in slide-in-from-bottom duration-500 pb-4">
+            
+            {/* VIP Card Header */}
+            <div className="flex items-center justify-between mb-4 px-2">
+                <div className="flex items-center gap-2">
+                    <div className="bg-slate-900 p-2 rounded-lg text-white">
+                        <Zap size={18} fill="currentColor" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-800 leading-none">Flash Mode</h2>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">EjecuciÃ³n Inmediata</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Dark Mode Card */}
+            <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-2xl shadow-slate-300 relative overflow-hidden flex-1 flex flex-col justify-between group">
+                
+                {/* Texture/Noise Overlay */}
+                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+                
+                {/* Glows */}
+                <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-500/30 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-fuchsia-500/20 rounded-full blur-3xl"></div>
+
+                {/* Badge */}
+                <div className="relative z-10 flex justify-end">
+                    <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-indigo-200 border border-white/10 shadow-sm">
+                        {rescueData.type}
+                    </span>
+                </div>
+
+                {/* THE CONTENT */}
+                <div className="relative z-10 my-4">
+                    <p className="text-2xl font-serif font-medium leading-relaxed text-white/95">
+                        {rescueData.text}
+                    </p>
+                </div>
+
+                {/* Analysis Section */}
+                <div className="space-y-3 relative z-10">
+                    {/* Objective */}
+                    <div className="bg-indigo-900/40 border border-indigo-500/30 p-3 rounded-xl backdrop-blur-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Target size={14} className="text-indigo-300" />
+                            <span className="text-[10px] uppercase font-bold text-indigo-300">Objetivo PsicolÃ³gico</span>
+                        </div>
+                        <p className="text-xs text-indigo-100 font-light italic">
+                            "{rescueData.objective}"
+                        </p>
+                    </div>
+
+                    {/* Visual Instruction */}
+                    <div className="flex items-start gap-3 pl-1">
+                        <Palette size={16} className="text-fuchsia-400 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-[10px] uppercase font-bold text-slate-400">InstrucciÃ³n Visual</p>
+                            <p className="text-xs text-slate-300 font-medium">{rescueData.visual}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Floating Action Buttons inside Card */}
+                <div className="flex gap-3 mt-6 relative z-10">
+                     <button 
+                        onClick={handleCopyRescue}
+                        className="flex-1 bg-white text-slate-900 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95 hover:bg-slate-200 shadow-lg"
+                    >
+                        {copiedRescue ? <Check size={18} className="text-green-600"/> : <Copy size={18} />}
+                        {copiedRescue ? 'Copiado' : 'Copiar Texto'}
+                    </button>
+                    <button 
+                        onClick={() => handleRescueMode()}
+                        className="p-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors border border-white/10 active:rotate-180 duration-500"
+                        title="Generar otra opciÃ³n"
+                        disabled={loadingAction}
+                    >
+                        <RefreshCw size={20} className={loadingAction ? "animate-spin" : ""} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Bottom Complete Button */}
+            <div className="mt-4 px-2">
+                <button 
+                    onClick={() => handleSuccess(true)} 
+                    className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-600 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                    <Trophy size={20} className="text-emerald-100" />
+                    Completar MisiÃ³n Flash
+                </button>
+                 <button 
+                    onClick={() => setPublishedStatus('IDLE')}
+                    className="w-full text-center text-slate-400 text-xs mt-3 underline hover:text-slate-600"
+                >
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    );
+  }
+
+  // --- DEFAULT PLAN STATE (BLUEPRINT) ---
+  return (
+    <div className="space-y-5 animate-in slide-in-from-right duration-500 pb-10">
+      
+      {/* Header with Date */}
+      <div className="flex items-center justify-between px-1">
+        <div>
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight">Estrategia Viral</h2>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">
+                {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
+            </p>
+        </div>
+        <div className="bg-gradient-to-tr from-indigo-500 to-purple-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-200">
+            <Megaphone size={20} fill="currentColor" className="text-white/20" stroke="white" />
+        </div>
+      </div>
+
+      {/* The Blueprint Card */}
+      {plan && (
+          <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100 relative group">
+            
+            {/* Format Tag */}
+            <div className="absolute top-0 right-0 bg-slate-900 text-white text-[10px] font-bold px-4 py-2 rounded-bl-2xl uppercase tracking-wider z-10 flex items-center gap-1.5">
+                <Camera size={12} />
+                {plan.format}
+            </div>
+
+            <div className="p-1">
+                {/* 1. THE HOOK (Hero Section) */}
+                <div className="bg-gradient-to-br from-indigo-50 to-white p-6 pb-8 rounded-t-[1.8rem]">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="bg-indigo-100 p-1.5 rounded-lg text-indigo-600">
+                            <Magnet size={16} />
+                        </div>
+                        <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Gancho de AtenciÃ³n</span>
+                    </div>
+                    <p className="text-2xl font-serif font-bold text-slate-800 leading-tight">
+                        "{plan.hook}"
+                    </p>
+                </div>
+
+                {/* 2. THE CORE IDEA (Middle) */}
+                <div className="px-6 -mt-4 relative z-10">
+                    <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                             <div className="bg-amber-100 p-1.5 rounded-lg text-amber-600">
+                                <Lightbulb size={16} />
+                            </div>
+                            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Contenido de Valor</span>
+                        </div>
+                        <p className="text-slate-600 text-sm font-medium leading-relaxed">
+                            {plan.idea}
+                        </p>
+                    </div>
+                </div>
+
+                {/* 3. THE CTA (Bottom) */}
+                <div className="p-6 pt-4">
+                     <div className="flex items-center gap-2 mb-2 ml-1">
+                        <MousePointerClick size={14} className="text-emerald-500" />
+                        <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Llamada a la AcciÃ³n</span>
+                    </div>
+                    <div className="bg-emerald-50/50 border-l-4 border-emerald-400 pl-4 py-2 rounded-r-xl">
+                        <p className="text-lg font-bold text-slate-700">
+                            {plan.cta}
+                        </p>
+                    </div>
+                </div>
+            </div>
+          </div>
+      )}
+
+      {/* Action Dock */}
+      <div className="pt-2">
+        {loadingAction ? (
+             <div className="flex justify-center py-6"><Loader2 className="animate-spin text-indigo-500" /></div>
+        ) : (
+            <div className="flex gap-3">
+                {/* Rescue Button (Left) */}
+                <button 
+                    onClick={() => handleRescueMode()}
+                    className="group relative overflow-hidden bg-slate-800 text-white p-4 rounded-2xl font-bold transition-all active:scale-95 flex-none w-1/3 flex flex-col items-center justify-center gap-1 shadow-lg shadow-slate-300"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/50 to-purple-600/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <LifeBuoy size={22} className="relative z-10 text-indigo-200 group-hover:rotate-12 transition-transform duration-300" />
+                    <span className="text-[10px] uppercase font-bold tracking-wider relative z-10 text-indigo-100">Flash</span>
+                </button>
+
+                {/* Success Button (Right - Main) */}
+                <button 
+                    onClick={() => handleSuccess(false)}
+                    className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-200 active:scale-95 flex items-center justify-between group border-b-4 border-emerald-700 hover:border-emerald-600 active:border-b-0 active:translate-y-1"
+                >
+                    <div className="text-left">
+                        <span className="block text-xs font-medium text-emerald-100 mb-0.5">MisiÃ³n Cumplida</span>
+                        <span className="block text-lg">Ya PubliquÃ©</span>
+                    </div>
+                    <div className="bg-white/20 p-2 rounded-xl group-hover:bg-white/30 transition-colors">
+                        <Check size={24} />
+                    </div>
+                </button>
+            </div>
+        )}
+        
+        <p className="text-[10px] text-center text-slate-400 mt-4 font-medium tracking-wide">
+            "La consistencia vence al talento."
+        </p>
+      </div>
+
+    </div>
+  );
+};PK
+     O¥L\ú¡&èï  ï     package.json{
+  "name": "copy-original-of-mlm-action-partner",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "@google/genai": "^1.40.0",
+    "lucide-react": "^0.563.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}
+PK
+     O¥L\S˜¿çÀ  À  
+   index.html<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLM Action Partner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>PK
+     O¥L\°2h]  ]  	   index.tsximport React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);PK
+     O¥L\¶H¬    
+   tsconfig.json{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  }
+}PK
+     O¥L\Ë£ñ¨D  D     vite.config.tsimport path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, '.', '');
+    return {
+      server: {
+        port: 3000,
+        host: '0.0.0.0',
+      },
+      plugins: [react()],
+      define: {
+        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      },
+      resolve: {
+        alias: {
+          '@': path.resolve(__dirname, '.'),
+        }
+      }
+    };
+});
+PK
+     O¥L\îxëX#   #   
+   .env.localGEMINI_API_KEY=PLACEHOLDER_API_KEY
+PK
+     O¥L\¤ªõÉý   ý   
+   .gitignore# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+PK
+     O¥L\‡ŠÒ)  )  	   README.md<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
+
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/drive/18X53mCb1lwWp1OpCoZ3scsf4ibbFEi6I
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
+PK 
+     O¥L\ŒIB%  %  
+                 metadata.jsonPK 
+     O¥L\            	            P  services/PK 
+     O¥L\6äº»j%  j%               w  services/geminiService.tsPK 
+     O¥L\ÓdQg  g               '  types.tsPK 
+     O¥L\            
+            ¥)  components/PK 
+     O¥L\R »¶|  |               Î)  components/Layout.tsxPK 
+     O¥L\<
+¤”¶  ¶               }.  components/ActionCard.tsxPK 
+     O¥L\                        j=  views/PK 
+     O¥L\÷Ž«‘C  ‘C               Ž=  views/HomeView.tsxPK 
+     O¥L\ûyæ                 O  views/ContactView.tsxPK 
+     O¥L\xòžS  S               ž›  views/FollowUpView.tsxPK 
+     O¥L\ FÙ                 %­  views/ObjectionView.tsxPK 
+     O¥L\0P¾œ¿  ¿               êÄ  views/GoalsView.tsxPK 
+     O¥L\¯HGóD
+  D
+                ÚØ  App.tsxPK 
+     O¥L\'§w”E  ”E               Cä  views/DailyPostView.tsxPK 
+     O¥L\ú¡&èï  ï               * package.jsonPK 
+     O¥L\S˜¿çÀ  À  
+             %, index.htmlPK 
+     O¥L\°2h]  ]  	             
+0 index.tsxPK 
+     O¥L\¶H¬    
+             ‘1 tsconfig.jsonPK 
+     O¥L\Ë£ñ¨D  D               Ú3 vite.config.tsPK 
+     O¥L\îxëX#   #   
+             J6 .env.localPK 
+     O¥L\¤ªõÉý   ý   
+             •6 .gitignorePK 
+     O¥L\‡ŠÒ)  )  	             º7 README.mdPK      t  
